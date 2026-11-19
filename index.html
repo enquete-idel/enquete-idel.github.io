@@ -739,7 +739,7 @@
           data[k] = data[k] ? data[k] + ", " + v : v;
         });
         btn.disabled = true;
-        btn.textContent = "Envoi en cours…";
+        btn.textContent = "Envoi en cours… (jusqu’à 30 s, ne fermez pas)";
         function fail() {
           btn.disabled = false;
           btn.textContent = "Envoyer mes réponses";
