@@ -288,7 +288,7 @@
     <form id="survey" action="https://formsubmit.co/fff28a12891b09e68380576bf3c52be8" method="POST">
       <input type="hidden" name="_subject" value="Étude IDEL — réponse anonyme">
       <input type="hidden" name="_template" value="table">
-      <input type="hidden" name="_captcha" value="true">
+      <input type="hidden" name="_captcha" value="false">
       <input type="hidden" name="_next" id="field-next" value="https://enquete-idel.github.io/merci.html">
       <input type="hidden" name="applications" id="field-apps">
       <input type="hidden" name="ameliorations" id="field-amelio">
@@ -729,10 +729,42 @@
       form.addEventListener("submit", function (e) {
         if (!validate(pages[idx])) { e.preventDefault(); return; }
         collectLists();
-        if (preview) {
-          e.preventDefault();
-          show(pages.length - 1);
+        e.preventDefault();
+        if (preview) { show(pages.length - 1); return; }
+        var btn = document.getElementById("btn-send");
+        var err = pages[idx].querySelector("[data-error]");
+        var data = {};
+        new FormData(form).forEach(function (v, k) {
+          if (k === "_next" || k === "_captcha") return;
+          data[k] = data[k] ? data[k] + ", " + v : v;
+        });
+        btn.disabled = true;
+        btn.textContent = "Envoi en cours…";
+        function fail() {
+          btn.disabled = false;
+          btn.textContent = "Envoyer mes réponses";
+          if (err) {
+            err.textContent = "L’envoi n’a pas abouti (serveur momentanément indisponible). Vos réponses sont conservées : réessayez dans une minute.";
+            err.classList.add("show");
+          }
         }
+        function send(tries) {
+          fetch("https://formsubmit.co/ajax/fff28a12891b09e68380576bf3c52be8", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", "Accept": "application/json" },
+            body: JSON.stringify(data)
+          }).then(function (r) {
+            if (!r.ok) throw new Error("HTTP " + r.status);
+            return r.json();
+          }).then(function (j) {
+            if (j && (j.success === true || j.success === "true")) { show(pages.length - 1); }
+            else throw new Error("refus");
+          }).catch(function () {
+            if (tries > 0) setTimeout(function () { send(tries - 1); }, 3000);
+            else fail();
+          });
+        }
+        send(2);
       });
 
       // Aperçu local : aller à une page via ?page=applications
