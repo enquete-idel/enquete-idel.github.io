@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="robots" content="noindex,nofollow">
+  <title>Enquête — outils de cabinet et de tournée IDEL</title>
+  <style>
+    :root {
+      --ink: #1a1f24;
+      --muted: #5b6570;
+      --line: #e4e0d8;
+      --paper: #f4f1ea;
+      --card: #fffcf7;
+      --accent: #0f6e6a;
+      --accent-dark: #0b5552;
+      --accent-soft: #e4f3f2;
+      --danger: #9b2c2c;
+      --ok: #0f6e6a;
+      --radius: 16px;
+      --shadow: 0 8px 28px rgba(26, 31, 36, .08);
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background: var(--paper);
+      color: var(--ink);
+      line-height: 1.45;
+      min-height: 100vh;
+    }
+    .wrap {
+      max-width: 430px;
+      margin: 0 auto;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      padding: 0 18px 28px;
+    }
+    header.top {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: color-mix(in srgb, var(--paper) 92%, white);
+      backdrop-filter: blur(10px);
+      padding: 14px 0 12px;
+    }
+    .brand {
+      font-size: 12px;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      font-weight: 600;
+    }
+    .progress-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin: 10px 0 6px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+    .bar {
+      height: 6px;
+      background: #e7e2d8;
+      border-radius: 99px;
+      overflow: hidden;
+    }
+    .bar > span {
+      display: block;
+      height: 100%;
+      width: 0;
+      background: var(--accent);
+      border-radius: 99px;
+      transition: width .25s ease;
+    }
+    h1 {
+      font-size: 1.55rem;
+      line-height: 1.25;
+      margin: 8px 0 10px;
+      letter-spacing: -.02em;
+    }
+    h2 {
+      font-size: 1.28rem;
+      line-height: 1.3;
+      margin: 4px 0 8px;
+      letter-spacing: -.02em;
+    }
+    p.lead, .hint { color: var(--muted); font-size: 15px; margin: 0 0 16px; }
+    .hint { font-size: 13.5px; }
+    .page { display: none; animation: in .22s ease; }
+    .page.active { display: block; }
+    @keyframes in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 16px;
+      box-shadow: var(--shadow);
+      margin-bottom: 14px;
+    }
+    .intro-badge {
+      display: inline-block;
+      background: var(--accent-soft);
+      color: var(--accent-dark);
+      font-weight: 600;
+      font-size: 12px;
+      padding: 4px 10px;
+      border-radius: 99px;
+      margin-bottom: 10px;
+    }
+    ul.points { margin: 8px 0 0; padding: 0; list-style: none; }
+    ul.points li {
+      position: relative;
+      padding: 8px 0 8px 26px;
+      font-size: 15px;
+    }
+    ul.points li::before {
+      content: "";
+      position: absolute;
+      left: 0; top: 14px;
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--accent);
+    }
+    fieldset { border: 0; margin: 0 0 18px; padding: 0; }
+    legend, .label {
+      display: block;
+      font-weight: 650;
+      font-size: 15px;
+      margin-bottom: 8px;
+    }
+    .optional { font-weight: 500; color: var(--muted); font-size: 12.5px; }
+    select, input[type="text"], input[type="number"], textarea {
+      width: 100%;
+      font: inherit;
+      font-size: 16px;
+      padding: 12px 12px;
+      border: 1px solid #d5d0c6;
+      border-radius: 12px;
+      background: #fff;
+      color: var(--ink);
+    }
+    textarea { min-height: 90px; resize: vertical; }
+    .choices { display: flex; flex-direction: column; gap: 8px; }
+    .choice {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      background: #fff;
+      border: 1.5px solid #d9d4ca;
+      border-radius: 12px;
+      padding: 11px 12px;
+      cursor: pointer;
+    }
+    .choice:has(input:checked) {
+      border-color: var(--accent);
+      background: var(--accent-soft);
+    }
+    .choice input { margin-top: 3px; accent-color: var(--accent); flex-shrink: 0; }
+    .choice span { font-size: 15px; }
+    .group-title {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      color: var(--muted);
+      margin: 14px 0 8px;
+    }
+    .scale {
+      display: grid;
+      grid-template-columns: repeat(11, 1fr);
+      gap: 4px;
+    }
+    .scale label {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      aspect-ratio: 1;
+      border-radius: 10px;
+      border: 1.5px solid #d9d4ca;
+      background: #fff;
+      font-weight: 650;
+      font-size: 13px;
+      cursor: pointer;
+    }
+    .scale label:has(input:checked) {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+    }
+    .scale input { position: absolute; opacity: 0; pointer-events: none; }
+    .scale-ends {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11.5px;
+      color: var(--muted);
+      margin-top: 6px;
+    }
+    .inline-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    .page.active { padding-bottom: 110px; }
+    .nav {
+      display: flex;
+      gap: 10px;
+      margin-top: 22px;
+      position: fixed;
+      left: 50%;
+      bottom: 0;
+      transform: translateX(-50%);
+      width: 100%;
+      max-width: 430px;
+      padding: 12px 18px calc(10px + env(safe-area-inset-bottom, 0px));
+      background: linear-gradient(180deg, rgba(244,241,234,0), var(--paper) 28%);
+      z-index: 20;
+      box-sizing: border-box;
+    }
+    html.preview .page.active { padding-bottom: 8px; }
+    html.preview .nav {
+      position: static;
+      transform: none;
+      left: auto;
+      width: auto;
+      max-width: none;
+      padding: 12px 0 6px;
+      background: transparent;
+    }
+    html.preview header.top { position: static; }
+    button {
+      font: inherit;
+      border: 0;
+      cursor: pointer;
+    }
+    .btn {
+      flex: 1;
+      padding: 14px 16px;
+      border-radius: 14px;
+      font-weight: 700;
+      font-size: 16px;
+    }
+    .btn-primary { background: var(--accent); color: #fff; }
+    .btn-primary:active { background: var(--accent-dark); }
+    .btn-ghost {
+      background: transparent;
+      color: var(--ink);
+      border: 1.5px solid #d5d0c6;
+      flex: 0 0 42%;
+    }
+    .error {
+      display: none;
+      color: var(--danger);
+      font-size: 13.5px;
+      margin: 8px 0 0;
+      font-weight: 600;
+    }
+    .error.show { display: block; }
+    .thanks {
+      text-align: center;
+      padding: 28px 8px 10px;
+    }
+    .thanks .mark {
+      width: 64px; height: 64px;
+      margin: 10px auto 16px;
+      border-radius: 50%;
+      background: var(--accent-soft);
+      color: var(--accent-dark);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 30px;
+    }
+    .legal { font-size: 12px; color: var(--muted); margin-top: 18px; }
+    .honey { position: absolute; left: -9999px; height: 0; overflow: hidden; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="top" id="topbar">
+      <div class="brand">Enquête IDEL · anonyme</div>
+      <div class="progress-meta" id="progress-meta">
+        <span id="step-label">Introduction</span>
+        <span id="step-count"></span>
+      </div>
+      <div class="bar" aria-hidden="true"><span id="bar"></span></div>
+    </header>
+
+    <form id="survey" action="https://formsubmit.co/fff28a12891b09e68380576bf3c52be8" method="POST">
+      <input type="hidden" name="_subject" value="Étude IDEL — réponse anonyme">
+      <input type="hidden" name="_template" value="table">
+      <input type="hidden" name="_captcha" value="true">
+      <input type="hidden" name="_next" id="field-next" value="https://mariongomez.github.io/enquete-idel/merci.html">
+      <input type="hidden" name="applications" id="field-apps">
+      <input type="hidden" name="ameliorations" id="field-amelio">
+      <input type="hidden" name="besoins" id="field-besoins">
+      <div class="honey">
+        <label>Ne pas remplir <input type="text" name="_honey" tabindex="-1" autocomplete="off"></label>
+      </div>
+
+      <!-- 0 Intro -->
+      <section class="page active" data-page="intro" data-title="Introduction">
+        <span class="intro-badge">Moins de 5 minutes</span>
+        <h1>Vos outils de cabinet et de tournée</h1>
+        <p class="lead">Cette enquête s’adresse aux infirmiers et infirmières libéraux, et aux cabinets. Elle vise à mieux comprendre les applications utilisées au quotidien, ce qui manque, et ce que cela coûte.</p>
+        <div class="card">
+          <ul class="points">
+            <li>Entièrement anonyme : aucun nom, e-mail, téléphone ni adresse.</li>
+            <li>Quelques questions facultatives (région, statut, taille du cabinet) pour contextualiser les résultats.</li>
+            <li>Une seule réponse par personne, en une seule fois à la fin.</li>
+          </ul>
+        </div>
+        <p class="legal">Les réponses servent uniquement à une étude de marché agrégée. En envoyant le questionnaire, vous acceptez que vos réponses anonymes soient transmises par e-mail à l’organisateur, via un prestataire de formulaire (FormSubmit).</p>
+        <div class="nav"><button type="button" class="btn btn-primary" data-next>Commencer</button></div>
+      </section>
+
+      <!-- 1 Profil -->
+      <section class="page" data-page="profil" data-title="Votre pratique" data-step="1">
+        <h2>Votre pratique</h2>
+        <p class="hint">Toutes les questions de cette page sont facultatives. Vous pouvez passer à la suite.</p>
+        <label class="label" for="region">Région <span class="optional">facultatif</span></label>
+        <select id="region" name="region">
+          <option value="">—</option>
+          <option>Auvergne-Rhône-Alpes</option>
+          <option>Bourgogne-Franche-Comté</option>
+          <option>Bretagne</option>
+          <option>Centre-Val de Loire</option>
+          <option>Corse</option>
+          <option>Grand Est</option>
+          <option>Hauts-de-France</option>
+          <option>Île-de-France</option>
+          <option>Normandie</option>
+          <option>Nouvelle-Aquitaine</option>
+          <option>Occitanie</option>
+          <option>Pays de la Loire</option>
+          <option>Provence-Alpes-Côte d'Azur</option>
+          <option>Guadeloupe</option>
+          <option>Martinique</option>
+          <option>Guyane</option>
+          <option>La Réunion</option>
+          <option>Mayotte</option>
+          <option>Je préfère ne pas dire</option>
+        </select>
+        <fieldset>
+          <legend>Statut <span class="optional">facultatif</span></legend>
+          <div class="choices">
+            <label class="choice"><input type="radio" name="statut" value="Titulaire"><span>Titulaire</span></label>
+            <label class="choice"><input type="radio" name="statut" value="Collaborateur"><span>Collaborateur / collaboratrice</span></label>
+            <label class="choice"><input type="radio" name="statut" value="Remplaçant"><span>Remplaçant / remplaçante</span></label>
+            <label class="choice"><input type="radio" name="statut" value="Autre"><span>Autre</span></label>
+          </div>
+        </fieldset>
+        <fieldset>
+          <legend>Taille du cabinet <span class="optional">facultatif</span></legend>
+          <div class="choices">
+            <label class="choice"><input type="radio" name="taille_cabinet" value="Seul"><span>Seul(e)</span></label>
+            <label class="choice"><input type="radio" name="taille_cabinet" value="2-3"><span>2 à 3 personnes</span></label>
+            <label class="choice"><input type="radio" name="taille_cabinet" value="4-6"><span>4 à 6 personnes</span></label>
+            <label class="choice"><input type="radio" name="taille_cabinet" value="7+"><span>7 personnes ou plus</span></label>
+          </div>
+        </fieldset>
+        <fieldset>
+          <legend>Années d’exercice libéral <span class="optional">facultatif</span></legend>
+          <div class="choices">
+            <label class="choice"><input type="radio" name="annees" value="Moins de 2 ans"><span>Moins de 2 ans</span></label>
+            <label class="choice"><input type="radio" name="annees" value="2-5 ans"><span>2 à 5 ans</span></label>
+            <label class="choice"><input type="radio" name="annees" value="6-10 ans"><span>6 à 10 ans</span></label>
+            <label class="choice"><input type="radio" name="annees" value="11-20 ans"><span>11 à 20 ans</span></label>
+            <label class="choice"><input type="radio" name="annees" value="Plus de 20 ans"><span>Plus de 20 ans</span></label>
+          </div>
+        </fieldset>
+        <p class="error" data-error></p>
+        <div class="nav">
+          <button type="button" class="btn btn-ghost" data-prev>Précédent</button>
+          <button type="button" class="btn btn-primary" data-next>Suivant</button>
+        </div>
+      </section>
+
+      <!-- 2 Apps -->
+      <section class="page" data-page="applications" data-title="Applications" data-step="2" data-required="apps">
+        <h2>Quelles applications utilisez-vous ?</h2>
+        <p class="hint">Plusieurs réponses possibles. Cochez celles que vous utilisez le plus souvent pour le cabinet ou la tournée.</p>
+        <p class="group-title">Tournée et coordination</p>
+        <div class="choices" id="apps-tournee">
+          <label class="choice"><input type="checkbox" name="app_bonami" value="Bonami" data-app><span>Bonami</span></label>
+          <label class="choice"><input type="checkbox" name="app_oly" value="Oly" data-app><span>Oly</span></label>
+          <label class="choice"><input type="checkbox" name="app_calendridel" value="CalendrIDEL" data-app><span>CalendrIDEL</span></label>
+          <label class="choice"><input type="checkbox" name="app_ozzen" value="Ozzen" data-app><span>Ozzen</span></label>
+          <label class="choice"><input type="checkbox" name="app_carecare" value="CareCare" data-app><span>CareCare</span></label>
+          <label class="choice"><input type="checkbox" name="app_idelpro" value="IDEL Pro" data-app><span>IDEL Pro</span></label>
+        </div>
+        <p class="group-title">Facturation et logiciel de cabinet</p>
+        <div class="choices">
+          <label class="choice"><input type="checkbox" name="app_vega" value="VEGA / EVE" data-app><span>VEGA / EVE</span></label>
+          <label class="choice"><input type="checkbox" name="app_albus" value="Albus (ex-Topaze)" data-app><span>Albus (ex-Topaze)</span></label>
+          <label class="choice"><input type="checkbox" name="app_agathe" value="Agathe YOU" data-app><span>Agathe YOU</span></label>
+          <label class="choice"><input type="checkbox" name="app_weda" value="Weda" data-app><span>Weda</span></label>
+        </div>
+        <p class="group-title">Autre organisation</p>
+        <div class="choices">
+          <label class="choice"><input type="checkbox" name="app_papier" value="Papier / agenda" data-app data-none-ok><span>Papier / agenda</span></label>
+          <label class="choice"><input type="checkbox" name="app_whatsapp" value="WhatsApp" data-app data-none-ok><span>WhatsApp</span></label>
+          <label class="choice"><input type="checkbox" name="app_aucune" value="Aucune" data-app data-aucune><span>Aucune</span></label>
+          <label class="choice"><input type="checkbox" name="app_autre_flag" value="Autre" data-app data-none-ok id="app-autre-flag"><span>Autre (préciser)</span></label>
+        </div>
+        <p style="margin-top:10px">
+          <label class="label" for="apps_autre">Si autre, précisez <span class="optional">facultatif</span></label>
+          <input type="text" id="apps_autre" name="apps_autre" maxlength="80" placeholder="Nom de l’outil">
+        </p>
+        <p class="error" data-error>Cochez au moins une réponse pour continuer.</p>
+        <div class="nav">
+          <button type="button" class="btn btn-ghost" data-prev>Précédent</button>
+          <button type="button" class="btn btn-primary" data-next>Suivant</button>
+        </div>
+      </section>
+
+      <!-- 3 Satisfaction -->
+      <section class="page" data-page="satisfaction" data-title="Satisfaction" data-step="3" data-required="satisfaction,nps">
+        <h2>Satisfaction</h2>
+        <p class="hint">Si vous n’utilisez pas d’application, évaluez votre organisation actuelle (papier, WhatsApp…).</p>
+        <fieldset>
+          <legend>Globalement, à quel point êtes-vous satisfait(e) de votre outil actuel ?</legend>
+          <div class="scale" id="sat-scale"></div>
+          <div class="scale-ends"><span>0 · Pas du tout</span><span>10 · Tout à fait</span></div>
+        </fieldset>
+        <fieldset>
+          <legend>Recommanderiez-vous votre appli (ou votre façon de faire) à un collègue ?</legend>
+          <div class="scale" id="nps-scale"></div>
+          <div class="scale-ends"><span>0 · Pas du tout</span><span>10 · Oui, sans hésiter</span></div>
+        </fieldset>
+        <p class="error" data-error>Merci de répondre aux deux notes, de 0 à 10.</p>
+        <div class="nav">
+          <button type="button" class="btn btn-ghost" data-prev>Précédent</button>
+          <button type="button" class="btn btn-primary" data-next>Suivant</button>
+        </div>
+      </section>
+
+      <!-- 4 Améliorations -->
+      <section class="page" data-page="ameliorations" data-title="Améliorations" data-step="4" data-required="amelio">
+        <h2>Que souhaiteriez-vous améliorer ?</h2>
+        <p class="hint">Dans votre application ou votre organisation actuelle. Plusieurs réponses possibles.</p>
+        <div class="choices">
+          <label class="choice"><input type="checkbox" data-amelio value="Simplicité / prise en main"><span>La simplicité et la prise en main</span></label>
+          <label class="choice"><input type="checkbox" data-amelio value="Gestion et ordre de la tournée"><span>La gestion et l’ordre de la tournée</span></label>
+          <label class="choice"><input type="checkbox" data-amelio value="Mode conduite / GPS"><span>Le mode conduite ou le GPS</span></label>
+          <label class="choice"><input type="checkbox" data-amelio value="Transmissions entre collègues"><span>Les transmissions entre collègues</span></label>
+          <label class="choice"><input type="checkbox" data-amelio value="Photos (plaies, documents)"><span>Les photos (plaies, documents)</span></label>
+          <label class="choice"><input type="checkbox" data-amelio value="Travail hors ligne"><span>Le travail hors ligne, sans réseau</span></label>
+          <label class="choice"><input type="checkbox" data-amelio value="Facturation ou cotation"><span>La facturation ou la cotation</span></label>
+          <label class="choice"><input type="checkbox" data-amelio value="Multi-cabinet / remplaçants"><span>Le multi-cabinet ou les remplaçants</span></label>
+          <label class="choice"><input type="checkbox" data-amelio value="Fiabilité (bugs, lenteur)"><span>La fiabilité (bugs, lenteur)</span></label>
+          <label class="choice"><input type="checkbox" data-amelio value="Le prix"><span>Le prix</span></label>
+          <label class="choice"><input type="checkbox" data-amelio value="Rien en particulier" data-amelio-none><span>Rien en particulier</span></label>
+        </div>
+        <p style="margin-top:12px">
+          <label class="label" for="ameliorations_libre">Précisez si vous le souhaitez <span class="optional">facultatif</span></label>
+          <textarea id="ameliorations_libre" name="ameliorations_libre" maxlength="500" placeholder="Ce qui vous ferait vraiment gagner du temps…"></textarea>
+        </p>
+        <p class="error" data-error>Cochez au moins une réponse, ou écrivez une précision.</p>
+        <div class="nav">
+          <button type="button" class="btn btn-ghost" data-prev>Précédent</button>
+          <button type="button" class="btn btn-primary" data-next>Suivant</button>
+        </div>
+      </section>
+
+      <!-- 5 Besoins -->
+      <section class="page" data-page="besoins" data-title="Besoins" data-step="5" data-required="besoins">
+        <h2>Quels besoins ne sont pas couverts aujourd’hui ?</h2>
+        <p class="hint">Plusieurs réponses possibles.</p>
+        <div class="choices">
+          <label class="choice"><input type="checkbox" data-besoin value="Appli simple dédiée à la tournée"><span>Une appli simple, dédiée à la tournée (sans facturation)</span></label>
+          <label class="choice"><input type="checkbox" data-besoin value="Données qui restent sur le téléphone"><span>Des données qui restent sur le téléphone</span></label>
+          <label class="choice"><input type="checkbox" data-besoin value="Partage simple avec le cabinet"><span>Un partage simple avec le cabinet (lien ou QR)</span></label>
+          <label class="choice"><input type="checkbox" data-besoin value="Créneaux plutôt que des heures exactes"><span>Des créneaux plutôt que des heures exactes</span></label>
+          <label class="choice"><input type="checkbox" data-besoin value="Notifications plus claires"><span>Des notifications plus claires</span></label>
+          <label class="choice"><input type="checkbox" data-besoin value="Vrai mode voiture"><span>Un vrai mode voiture (gros caractères, un patient à la fois)</span></label>
+          <label class="choice"><input type="checkbox" data-besoin value="CarPlay ou Android Auto"><span>CarPlay ou Android Auto</span></label>
+          <label class="choice"><input type="checkbox" data-besoin value="Sauvegarde / export simple"><span>Une sauvegarde ou un export simple</span></label>
+          <label class="choice"><input type="checkbox" data-besoin value="Suivi des remplacements"><span>Un meilleur suivi des remplacements</span></label>
+          <label class="choice"><input type="checkbox" data-besoin value="Aucun besoin particulier" data-besoin-none><span>Aucun besoin particulier</span></label>
+        </div>
+        <p style="margin-top:12px">
+          <label class="label" for="besoins_libre">Autre besoin, à préciser <span class="optional">facultatif</span></label>
+          <textarea id="besoins_libre" name="besoins_libre" maxlength="500" placeholder="Ce qui vous manque vraiment…"></textarea>
+        </p>
+        <p class="error" data-error>Cochez au moins une réponse, ou décrivez un besoin.</p>
+        <div class="nav">
+          <button type="button" class="btn btn-ghost" data-prev>Précédent</button>
+          <button type="button" class="btn btn-primary" data-next>Suivant</button>
+        </div>
+      </section>
+
+      <!-- 6 Support -->
+      <section class="page" data-page="support" data-title="Support" data-step="6" data-required="support_besoin,support_delai">
+        <h2>Le support client</h2>
+        <p class="hint">S’il s’agit de papier ou de WhatsApp uniquement, choisissez « Je n’ai jamais contacté le support » pour la seconde question.</p>
+        <fieldset>
+          <legend>Avez-vous souvent besoin d’aide de la part de l’éditeur ?</legend>
+          <div class="choices">
+            <label class="choice"><input type="radio" name="support_besoin" value="Jamais"><span>Jamais</span></label>
+            <label class="choice"><input type="radio" name="support_besoin" value="Parfois"><span>Parfois</span></label>
+            <label class="choice"><input type="radio" name="support_besoin" value="Souvent"><span>Souvent</span></label>
+          </div>
+        </fieldset>
+        <fieldset>
+          <legend>En général, en combien de temps obtenez-vous une réponse ?</legend>
+          <div class="choices">
+            <label class="choice"><input type="radio" name="support_delai" value="Moins d'1 h"><span>Moins d’1 heure</span></label>
+            <label class="choice"><input type="radio" name="support_delai" value="Dans la journée"><span>Dans la journée</span></label>
+            <label class="choice"><input type="radio" name="support_delai" value="Plusieurs jours"><span>Plusieurs jours</span></label>
+            <label class="choice"><input type="radio" name="support_delai" value="Jamais de réponse"><span>Jamais de réponse</span></label>
+            <label class="choice"><input type="radio" name="support_delai" value="Je n'ai jamais contacté"><span>Je n’ai jamais contacté le support</span></label>
+          </div>
+        </fieldset>
+        <p class="error" data-error>Merci de répondre aux deux questions.</p>
+        <div class="nav">
+          <button type="button" class="btn btn-ghost" data-prev>Précédent</button>
+          <button type="button" class="btn btn-primary" data-next>Suivant</button>
+        </div>
+      </section>
+
+      <!-- 7 Temps admin -->
+      <section class="page" data-page="temps" data-title="Temps administratif" data-step="7" data-required="temps_admin">
+        <h2>Le temps administratif</h2>
+        <p class="hint">Une estimation suffit : planning, transmissions, saisie, facturation, rejets… le temps passé hors soins, par semaine.</p>
+        <fieldset>
+          <legend>Combien de temps y consacrez-vous par semaine ?</legend>
+          <div class="choices">
+            <label class="choice"><input type="radio" name="temps_admin" value="Moins d'1 h"><span>Moins d’1 heure</span></label>
+            <label class="choice"><input type="radio" name="temps_admin" value="1-3 h"><span>1 à 3 heures</span></label>
+            <label class="choice"><input type="radio" name="temps_admin" value="3-5 h"><span>3 à 5 heures</span></label>
+            <label class="choice"><input type="radio" name="temps_admin" value="5-10 h"><span>5 à 10 heures</span></label>
+            <label class="choice"><input type="radio" name="temps_admin" value="Plus de 10 h"><span>Plus de 10 heures</span></label>
+          </div>
+        </fieldset>
+        <p class="error" data-error>Choisissez une fourchette pour continuer.</p>
+        <div class="nav">
+          <button type="button" class="btn btn-ghost" data-prev>Précédent</button>
+          <button type="button" class="btn btn-primary" data-next>Suivant</button>
+        </div>
+      </section>
+
+      <!-- 8 Prix actuel -->
+      <section class="page" data-page="prix_actuel" data-title="Prix actuel" data-step="8" data-required="prix_actuel,prix_actuel_base">
+        <h2>Combien payez-vous aujourd’hui ?</h2>
+        <p class="hint">Pour votre application de gestion de cabinet ou de tournée, par mois.</p>
+        <fieldset>
+          <legend>Combien payez-vous aujourd’hui par mois pour votre application de gestion de cabinet / tournée ?</legend>
+          <div class="choices">
+            <label class="choice"><input type="radio" name="prix_actuel" value="Gratuit (0 €)"><span>Gratuit (0 €)</span></label>
+            <label class="choice"><input type="radio" name="prix_actuel" value="Moins de 10 €"><span>Moins de 10 €</span></label>
+            <label class="choice"><input type="radio" name="prix_actuel" value="10-20 €"><span>10 à 20 €</span></label>
+            <label class="choice"><input type="radio" name="prix_actuel" value="20-30 €"><span>20 à 30 €</span></label>
+            <label class="choice"><input type="radio" name="prix_actuel" value="30-50 €"><span>30 à 50 €</span></label>
+            <label class="choice"><input type="radio" name="prix_actuel" value="50-100 €"><span>50 à 100 €</span></label>
+            <label class="choice"><input type="radio" name="prix_actuel" value="Plus de 100 €"><span>Plus de 100 €</span></label>
+            <label class="choice"><input type="radio" name="prix_actuel" value="Inclus dans mon logiciel de facturation"><span>Inclus dans mon logiciel de facturation</span></label>
+            <label class="choice"><input type="radio" name="prix_actuel" value="Je ne sais pas"><span>Je ne sais pas</span></label>
+          </div>
+        </fieldset>
+        <fieldset>
+          <legend>Ce montant est-il…</legend>
+          <div class="choices inline-2" style="grid-template-columns:1fr 1fr">
+            <label class="choice"><input type="radio" name="prix_actuel_base" value="Par infirmière"><span>Par infirmière</span></label>
+            <label class="choice"><input type="radio" name="prix_actuel_base" value="Par cabinet"><span>Par cabinet</span></label>
+          </div>
+        </fieldset>
+        <label class="label" for="prix_actuel_exact">Montant exact <span class="optional">facultatif, en euros par mois</span></label>
+        <input type="text" id="prix_actuel_exact" name="prix_actuel_exact" inputmode="decimal" placeholder="Ex. 15">
+        <p class="error" data-error>Choisissez une fourchette et précisez si c’est par infirmière ou par cabinet.</p>
+        <div class="nav">
+          <button type="button" class="btn btn-ghost" data-prev>Précédent</button>
+          <button type="button" class="btn btn-primary" data-next>Suivant</button>
+        </div>
+      </section>
+
+      <!-- 9 Prix idéal -->
+      <section class="page" data-page="prix_ideal" data-title="Prix envisagé" data-step="9" data-required="prix_ideal,prix_ideal_base">
+        <h2>Que seriez-vous prêt(e) à payer ?</h2>
+        <p class="hint">Pour l’application idéale, celle qui couvrirait vraiment vos besoins, par mois.</p>
+        <fieldset>
+          <legend>Quel prix mensuel vous semblerait acceptable pour cette appli idéale ?</legend>
+          <div class="choices">
+            <label class="choice"><input type="radio" name="prix_ideal" value="Gratuit (0 €)"><span>Gratuit (0 €)</span></label>
+            <label class="choice"><input type="radio" name="prix_ideal" value="Moins de 10 €"><span>Moins de 10 €</span></label>
+            <label class="choice"><input type="radio" name="prix_ideal" value="10-20 €"><span>10 à 20 €</span></label>
+            <label class="choice"><input type="radio" name="prix_ideal" value="20-30 €"><span>20 à 30 €</span></label>
+            <label class="choice"><input type="radio" name="prix_ideal" value="30-50 €"><span>30 à 50 €</span></label>
+            <label class="choice"><input type="radio" name="prix_ideal" value="50-100 €"><span>50 à 100 €</span></label>
+            <label class="choice"><input type="radio" name="prix_ideal" value="Plus de 100 €"><span>Plus de 100 €</span></label>
+          </div>
+        </fieldset>
+        <fieldset>
+          <legend>Ce montant serait…</legend>
+          <div class="choices inline-2">
+            <label class="choice"><input type="radio" name="prix_ideal_base" value="Par infirmière"><span>Par infirmière</span></label>
+            <label class="choice"><input type="radio" name="prix_ideal_base" value="Par cabinet"><span>Par cabinet</span></label>
+          </div>
+        </fieldset>
+        <label class="label" for="prix_ideal_exact">Montant exact <span class="optional">facultatif, en euros par mois</span></label>
+        <input type="text" id="prix_ideal_exact" name="prix_ideal_exact" inputmode="decimal" placeholder="Ex. 8">
+        <label class="label" for="commentaire" style="margin-top:14px">Un dernier mot ? <span class="optional">facultatif</span></label>
+        <textarea id="commentaire" name="commentaire" maxlength="600" placeholder="Tout ce que vous voulez ajouter, toujours de façon anonyme."></textarea>
+        <p class="error" data-error>Choisissez une fourchette et précisez si c’est par infirmière ou par cabinet.</p>
+        <div class="nav">
+          <button type="button" class="btn btn-ghost" data-prev>Précédent</button>
+          <button type="submit" class="btn btn-primary" id="btn-send">Envoyer mes réponses</button>
+        </div>
+      </section>
+
+      <!-- Merci (affiché après envoi, ou en aperçu) -->
+      <section class="page" data-page="merci" data-title="Merci">
+        <div class="thanks">
+          <div class="mark">✓</div>
+          <h2>Merci, c’est envoyé.</h2>
+          <p class="lead">Votre réponse anonyme a bien été prise en compte. Vous pouvez fermer cette page.</p>
+        </div>
+      </section>
+    </form>
+  </div>
+  <script>
+    (function () {
+      var pages = Array.prototype.slice.call(document.querySelectorAll(".page"));
+      var idx = 0;
+      var bar = document.getElementById("bar");
+      var stepLabel = document.getElementById("step-label");
+      var stepCount = document.getElementById("step-count");
+      var form = document.getElementById("survey");
+      var preview = /(?:\?|&)preview=1(?:&|$)/.test(location.search) || location.hash === "#preview";
+      if (preview) document.documentElement.classList.add("preview");
+      var TOTAL_STEPS = 9;
+
+      function scale(containerId, name) {
+        var box = document.getElementById(containerId);
+        for (var i = 0; i <= 10; i++) {
+          var lab = document.createElement("label");
+          lab.innerHTML = '<input type="radio" name="' + name + '" value="' + i + '"><span>' + i + "</span>";
+          box.appendChild(lab);
+        }
+      }
+      scale("sat-scale", "satisfaction");
+      scale("nps-scale", "nps");
+
+      function show(i) {
+        idx = i;
+        pages.forEach(function (p, n) { p.classList.toggle("active", n === i); });
+        var page = pages[i];
+        var step = page.getAttribute("data-step");
+        stepLabel.textContent = page.getAttribute("data-title") || "";
+        if (page.getAttribute("data-page") === "intro") {
+          stepCount.textContent = "";
+          bar.style.width = "6%";
+        } else if (page.getAttribute("data-page") === "merci") {
+          stepCount.textContent = "";
+          bar.style.width = "100%";
+          document.querySelectorAll(".nav").forEach(function () {});
+        } else {
+          stepCount.textContent = "Étape " + step + " sur " + TOTAL_STEPS;
+          bar.style.width = Math.round((Number(step) / TOTAL_STEPS) * 100) + "%";
+        }
+        window.scrollTo(0, 0);
+      }
+
+      function checked(sel, root) {
+        return Array.prototype.slice.call((root || document).querySelectorAll(sel)).filter(function (el) { return el.checked; });
+      }
+
+      function validate(page) {
+        var err = page.querySelector("[data-error]");
+        if (err) err.classList.remove("show");
+        var req = (page.getAttribute("data-required") || "").split(",").filter(Boolean);
+        var ok = true;
+        req.forEach(function (key) {
+          if (key === "apps") {
+            if (!checked("[data-app]", page).length) ok = false;
+          } else if (key === "amelio") {
+            var has = checked("[data-amelio]", page).length || (document.getElementById("ameliorations_libre").value || "").trim();
+            if (!has) ok = false;
+          } else if (key === "besoins") {
+            var hasB = checked("[data-besoin]", page).length || (document.getElementById("besoins_libre").value || "").trim();
+            if (!hasB) ok = false;
+          } else if (key === "satisfaction" || key === "nps") {
+            if (!checked('input[name="' + key + '"]', page).length) ok = false;
+          } else {
+            if (!checked('input[name="' + key + '"]', page).length) ok = false;
+          }
+        });
+        if (!ok && err) err.classList.add("show");
+        return ok;
+      }
+
+      document.addEventListener("change", function (e) {
+        if (e.target && e.target.hasAttribute("data-aucune") && e.target.checked) {
+          document.querySelectorAll("[data-app]:not([data-aucune])").forEach(function (el) { el.checked = false; });
+        } else if (e.target && e.target.hasAttribute("data-app") && !e.target.hasAttribute("data-aucune") && e.target.checked) {
+          var a = document.querySelector("[data-aucune]");
+          if (a) a.checked = false;
+        }
+        if (e.target && e.target.hasAttribute("data-amelio-none") && e.target.checked) {
+          document.querySelectorAll("[data-amelio]:not([data-amelio-none])").forEach(function (el) { el.checked = false; });
+        } else if (e.target && e.target.hasAttribute("data-amelio") && !e.target.hasAttribute("data-amelio-none") && e.target.checked) {
+          var n = document.querySelector("[data-amelio-none]");
+          if (n) n.checked = false;
+        }
+        if (e.target && e.target.hasAttribute("data-besoin-none") && e.target.checked) {
+          document.querySelectorAll("[data-besoin]:not([data-besoin-none])").forEach(function (el) { el.checked = false; });
+        } else if (e.target && e.target.hasAttribute("data-besoin") && !e.target.hasAttribute("data-besoin-none") && e.target.checked) {
+          var b = document.querySelector("[data-besoin-none]");
+          if (b) b.checked = false;
+        }
+      });
+
+      function collectLists() {
+        document.getElementById("field-apps").value = checked("[data-app]").map(function (el) { return el.value; }).join(", ");
+        document.getElementById("field-amelio").value = checked("[data-amelio]").map(function (el) { return el.value; }).join(", ");
+        document.getElementById("field-besoins").value = checked("[data-besoin]").map(function (el) { return el.value; }).join(", ");
+      }
+
+      form.addEventListener("click", function (e) {
+        var next = e.target.closest("[data-next]");
+        var prev = e.target.closest("[data-prev]");
+        if (next) {
+          if (!validate(pages[idx])) return;
+          show(Math.min(idx + 1, pages.length - 1));
+        } else if (prev) {
+          show(Math.max(idx - 1, 0));
+        }
+      });
+
+      form.addEventListener("submit", function (e) {
+        if (!validate(pages[idx])) { e.preventDefault(); return; }
+        collectLists();
+        if (preview) {
+          e.preventDefault();
+          show(pages.length - 1);
+        }
+      });
+
+      // Aperçu local : aller à une page via ?page=applications
+      var m = location.search.match(/[?&]page=([a-z0-9_]+)/);
+      if (m) {
+        var target = pages.findIndex(function (p) { return p.getAttribute("data-page") === m[1]; });
+        if (target >= 0) show(target);
+      }
+
+      window.__surveyGoto = function (name) {
+        var target = pages.findIndex(function (p) { return p.getAttribute("data-page") === name; });
+        if (target >= 0) show(target);
+      };
+    })();
+  </script>
+</body>
+</html>
